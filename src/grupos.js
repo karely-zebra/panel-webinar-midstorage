@@ -34,8 +34,8 @@ const GRUPOS = [
     reporte: true,
     // Desde cuándo suma la pauta de Meta y las difusiones (lo mismo que en n8n).
     pautaDesde: "4 nov",
-    // Presupuesto de pauta del webinar, en MXN. Pendiente: null oculta el dato.
-    presupuesto: null,
+    // Presupuesto de pauta aprobado para el webinar, en MXN.
+    presupuesto: 170000,
     // Respaldo para nombrar asesores aunque falten en el glosario.
     asesoresPorId: {
       12260927: "Ana Hernández",
