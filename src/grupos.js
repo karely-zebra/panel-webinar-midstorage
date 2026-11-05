@@ -49,11 +49,11 @@ const GRUPOS = [
     },
     // Fechas en dd/mm/aaaa. Las metas van por nombre del asesor.
     // Equipo = reparto de Holding (el mismo de One Storage) más Gerardo Acosta,
-    // que ya recibe leads de la campaña. Objetivo y metas son provisionales:
-    // se ajustan desde el panel (Objetivos).
+    // que ya recibe leads de la campaña. Objetivo total: 750 registros
+    // (pedido 5 nov), repartido parejo: 94 a seis asesores y 93 a dos.
     evento: {
       anio: "2026",
-      objetivo: 160,
+      objetivo: 750,
       fechaInicio: "04/11/2026",
       fechaWebinar: "03/12/2026",
       asesores: [
@@ -67,14 +67,14 @@ const GRUPOS = [
         { id: "13326296", nombre: "Ricardo Maza" },
       ],
       metas: {
-        "Alejandra May": 20,
-        "Ana Hernández": 20,
-        "Arlette Zuñiga": 20,
-        "Edwin Euceda": 20,
-        "Fernando Alcaraz": 20,
-        "Gerardo Acosta": 20,
-        "Rafael Turullols": 20,
-        "Ricardo Maza": 20,
+        "Alejandra May": 94,
+        "Ana Hernández": 94,
+        "Arlette Zuñiga": 94,
+        "Edwin Euceda": 94,
+        "Fernando Alcaraz": 94,
+        "Gerardo Acosta": 94,
+        "Rafael Turullols": 93,
+        "Ricardo Maza": 93,
       },
     },
     hojas: [
