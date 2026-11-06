@@ -1589,6 +1589,72 @@ table.data tr.total td{background:var(--surface-3); font-weight:600; color:var(-
     if (m.sinAsignar) s2.appendChild(el("div", "rep-note", nf.format(m.sinAsignar) + " registros sin asesor reconocido no aparecen en la tabla por asesor."));
     body.appendChild(s2);
 
+    // Dónde están hoy los leads registrados: etapa actual en Kommo de cada lead
+    // único (etapa WEBINAR + formulario), y el mismo corte por asesor.
+    var sE = repSeccion("¿Dónde están hoy los leads registrados?");
+    var lead = {};
+    ["registros", "formulario"].forEach(function (rol) {
+      var t = state.tabs[hojaConRol(rol)] || { header: [], rows: [] };
+      var cId = colIdx(t, /^ID del lead$/i), cEt = colIdx(t, /^Etapa actual$/i), cAs = colIdx(t, /^Asesor$/i);
+      if (cId < 0) return;
+      t.rows.forEach(function (r) {
+        var id = esc(r[cId]).trim();
+        if (!id) return;
+        var o = lead[id] || (lead[id] = { reg: false, form: false, etapa: "", asesor: "" });
+        o[rol === "registros" ? "reg" : "form"] = true;
+        if (!o.etapa && cEt >= 0) o.etapa = esc(r[cEt]).trim();
+        if (!o.asesor && cAs >= 0) o.asesor = esc(r[cAs]).trim();
+      });
+    });
+    var ids = Object.keys(lead);
+    if (!ids.length) {
+      sE.appendChild(emptyState("Sin leads registrados", "Todavía no hay leads en la etapa Webinar ni en el formulario."));
+    } else {
+      var etq = function (o) { return o.etapa || "Sin dato"; };
+      var porEt = {};
+      ids.forEach(function (id) {
+        var o = lead[id], k = etq(o);
+        var g = porEt[k] || (porEt[k] = { reg: 0, form: 0, tot: 0 });
+        if (o.reg) g.reg++;
+        if (o.form) g.form++;
+        g.tot++;
+      });
+      // Webinar primero; las demás etapas de mayor a menor.
+      var etapasOrden = Object.keys(porEt).sort(function (a, b) {
+        if (/^webinar$/i.test(a)) return -1;
+        if (/^webinar$/i.test(b)) return 1;
+        return porEt[b].tot - porEt[a].tot || a.localeCompare(b);
+      });
+      var totReg = 0, totForm = 0;
+      var filasE = etapasOrden.map(function (k) {
+        var g = porEt[k];
+        totReg += g.reg; totForm += g.form;
+        return [k, { v: nf.format(g.reg), n: true }, { v: nf.format(g.form), n: true }, { v: nf.format(g.tot), n: true }, { v: pctDe(g.tot, ids.length), n: true, heat: g.tot / ids.length }];
+      });
+      sE.appendChild(repTabla(["Etapa actual", "Pasaron por WEBINAR", "Del formulario", "Leads únicos", "% del total"], filasE,
+        ["Total", { v: nf.format(totReg), n: true }, { v: nf.format(totForm), n: true }, { v: nf.format(ids.length), n: true }, { v: "100%", n: true }]));
+
+      // Por asesor: cuántos de sus leads registrados están en cada etapa.
+      var nombres = m.asesores.map(function (a) { return a.nombre; });
+      var mat = {};
+      ids.forEach(function (id) {
+        var o = lead[id];
+        var quien = nombres.filter(function (n) { return norm(n) === norm(o.asesor); })[0] || "Sin asesor reconocido";
+        var row = mat[quien] || (mat[quien] = {});
+        row[etq(o)] = (row[etq(o)] || 0) + 1;
+      });
+      var filasM = nombres.concat(mat["Sin asesor reconocido"] ? ["Sin asesor reconocido"] : []).map(function (n) {
+        var row = mat[n] || {}, t = 0;
+        var celdas = etapasOrden.map(function (k) { t += row[k] || 0; return { v: row[k] ? nf.format(row[k]) : "·", n: true }; });
+        var enWeb = etapasOrden.filter(function (k) { return /^webinar$/i.test(k); }).reduce(function (s, k) { return s + (row[k] || 0); }, 0);
+        return [n].concat(celdas, [{ v: nf.format(t), n: true }, { v: pctDe(enWeb, t), n: true, heat: t ? enWeb / t : 0 }]);
+      });
+      sE.appendChild(el("div", "rep-note", "Por asesor (responsable actual en Kommo):"));
+      sE.appendChild(repTabla(["Asesor"].concat(etapasOrden, ["Total", "% en Webinar"]), filasM));
+    }
+    sE.appendChild(el("div", "rep-note", "Etapa actual del lead en Kommo. Leads únicos = los que pasaron por la etapa Webinar más los del formulario del webinar, sin repetir. Si un lead del formulario está en Lead nuevo, Ruleta, Día 1, etc., todavía no lo han movido a Webinar."));
+    body.appendChild(sE);
+
     // Inversión
     var s3 = repSeccion("Inversión");
     if (!pauta.length) {
